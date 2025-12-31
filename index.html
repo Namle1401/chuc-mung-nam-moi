@@ -1,30 +1,220 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Chúc mừng năm mới</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #ff0000, #ffcc00);
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        h1 {
-            color: white;
-            font-size: 48px;
-            animation: zoom 1.5s infinite alternate;
-        }
-        @keyframes zoom {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Chúc mừng năm mới</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@300;400&display=swap');
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    transition: background 1.5s ease;
+}
+
+body.light {
+    background: radial-gradient(circle at top, #fff4c2, #ffe28a);
+}
+
+body.dark {
+    background: radial-gradient(circle at top, #1c1c2e, #0a0a12);
+}
+
+.container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+}
+
+#wish {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    line-height: 1.45;
+    opacity: 0;
+    transition: opacity 1s ease;
+    max-width: 90%;
+}
+
+body.light #wish { color: #5a3e00; }
+body.dark  #wish { color: #e6e6f0; }
+
+.first-red {
+    color: #c40000 !important;
+}
+
+#signature {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    margin-top: 18px;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+    font-style: italic;
+}
+
+button {
+    position: absolute;
+    bottom: 70px;
+    padding: 14px 36px;
+    font-size: 15px;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+}
+
+body.light button {
+    background: #ffd36a;
+    color: #5a3e00;
+}
+
+body.dark button {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+</style>
 </head>
-<body>
-    <h1>🎉 Chúc mừng năm mới 🎉</h1>
+
+<body class="light">
+
+<canvas id="rain"></canvas>
+
+<div class="container">
+    <div>
+        <div id="wish"></div>
+        <div id="signature"></div>
+    </div>
+    <button id="nextBtn">Đọc tiếp</button>
+</div>
+
+<script>
+const wishes = [
+     "Chào bạn, Chúc bạn năm mới vui vẻ 🌼",
+    "Nhìn bạn quen ghê, hình như mình gặp bạn ở đâu rồi thì phải",
+    "Nhân tiện làm quen, mình sẽ kể bạn nghe 1 câu chuyện năm 2025 của mình",
+    "Mình có quen 1 cô gái",
+    "Bạn ấy không quá xinh, hơi đen nữa",
+    "Nhưng bạn ấy giỏi, chăm chỉ, và mình luôn cảm nhận được ở bạn ấy sự nỗ lực nha",
+    "Cái relationship này kể ra dài lắm, tóm lại là gần đây mình thích thầm cô ấy hơi nhiều 1 chút",
+    "Mà có vẻ như cô ấy không muốn đáp lại, mình cảm nhận được điều ấy mặc dù không chắc chắn lắm",
+    "Mình bị ovtk mà, hihi!",
+    "Mình nhắn tin, mặc dù toàn mấy cái tào lao (do người đang còn đi học, người đã đi làm - in my opinion) mà cổ không rep",
+    "'Chắc cổ bận' - mình tự an ủi vậy",
+    "Tệ hơn là cổ cố ý không rep, và tất nhiên mình nghĩ theo hướng này nhiều hơn",
+    "Và mình quyết định",
+    "Sẽ để mối tình đơn phương cùng cô ấy ở lại 2025",
+    "Nghe có vẻ nặng lòng ha, cũng khá nhẹ nhõm nữa",
+    "Muốn gửi những lời tâm sự này đến cô ấy mà không biết con ranh đấy có thèm đọc không",
+    "Mình sẽ đau lòng thêm 1 thời gian, dần quên đi cái relationship này và có khi bắt đầu cái mới?",
+    "Rõ ràng, bạn đoán đúng rồi đấy",
+    "Nhưng chưa đủ, theo mình tìm hiểu thì hình như cổ nghĩ mình rất lăng nhăng",
+    "Để không phụ lòng, mình muốn bắt đầu 1 new relationship với bạn ngay 01/01/2026 này",
+    "Tại sao bạn không thử, biết đâu bạn sẽ thích mình cho mà xem",
+    "Mình sẽ update bản thân hơn, và thích cậu nhiều nhiều hơn nữa",
+    "Nếu đọc được đến đây thì hết chuyện rồi đấy",
+    "Tranh thủ rep lại mình bằng lời chúc năm mới kèm chữ OK để kí hiệu nhaaaaa!!!"
+];
+
+let index = 0;
+const total = wishes.length;
+const switchBackIndex = total - 7;
+
+const wishEl = document.getElementById("wish");
+const sigEl  = document.getElementById("signature");
+const btn    = document.getElementById("nextBtn");
+const body   = document.body;
+
+function showWish() {
+    wishEl.style.opacity = 0;
+    sigEl.style.opacity = 0;
+
+    setTimeout(() => {
+        wishEl.innerHTML = wishes[index];
+        wishEl.classList.toggle("first-red", index === 0);
+        wishEl.style.opacity = 1;
+
+        // nền tối đoạn giữa
+        if (index >= 3 && index < switchBackIndex) {
+            body.className = "dark";
+            startRain();
+        }
+
+        // 7 câu cuối quay lại nền sáng
+        if (index >= switchBackIndex) {
+            body.className = "light";
+            drops = [];
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
+
+        if (index === total - 1) {
+            setTimeout(() => {
+                sigEl.innerHTML = "— từ một người vẫn nhớ";
+                sigEl.style.opacity = 0.7;
+            }, 1200);
+        }
+
+        index++;
+        if (index >= total) btn.style.display = "none";
+    }, 500);
+}
+
+window.onload = showWish;
+btn.onclick = showWish;
+
+/* ===== RAIN ===== */
+const canvas = document.getElementById("rain");
+const ctx = canvas.getContext("2d");
+let drops = [];
+
+function resize() {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+}
+window.onresize = resize;
+resize();
+
+function startRain() {
+    if (drops.length) return;
+    for (let i = 0; i < 100; i++) {
+        drops.push({
+            x: Math.random()*canvas.width,
+            y: Math.random()*canvas.height,
+            s: Math.random()+0.5
+        });
+    }
+    drawRain();
+}
+
+function drawRain() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = "rgba(200,200,255,0.25)";
+    ctx.beginPath();
+    drops.forEach(d=>{
+        ctx.moveTo(d.x,d.y);
+        ctx.lineTo(d.x,d.y+10);
+        d.y+=d.s*2;
+        if(d.y>canvas.height)d.y=0;
+    });
+    ctx.stroke();
+    if (body.className==="dark") requestAnimationFrame(drawRain);
+}
+</script>
+
 </body>
 </html>
